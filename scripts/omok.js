@@ -1,9 +1,3 @@
-/*
-  요구조건
-  1. 클릭은 바둑판 안에서만 가능해야합니다
-  2. 동일한 자리에 서로 다른 사람이 바둑알을 놓을 수 없습니다
-*/
-
 const lineCount = 17;
 const boardEndToLineDistance = 50;
 const maxSize = 850;
@@ -143,9 +137,7 @@ function drawStone(x, y, color) {
   });
 }
 
-// 클릭 이벤트 리스너를 추가하여 클릭 시 바둑알을 그립니다.
 svg.addEventListener("click", async (event) => {
-  // 첫번째 줄의 라인이 몇인지가 필요함
   if (this.gameState) return;
   if (
     svg.getBoundingClientRect().right - event.clientX <
@@ -159,8 +151,8 @@ svg.addEventListener("click", async (event) => {
     event.clientY - svg.getBoundingClientRect().top < boardEndToLineDistance
   )
     return;
-  let x = event.clientX - svg.getBoundingClientRect().left; // 클릭한 위치의 X 좌표
-  let y = event.clientY - svg.getBoundingClientRect().top; // 클릭한 위치의 Y 좌표
+  let x = event.clientX - svg.getBoundingClientRect().left;
+  let y = event.clientY - svg.getBoundingClientRect().top;
   const checkX = (x % boardEndToLineDistance) - 25;
   const checkY = (y % boardEndToLineDistance) - 25;
 
@@ -204,9 +196,3 @@ for (
 ) {
   drawLine(i, boardEndToLineDistance, i, maxSize);
 }
-
-/*
-  2, 0
-  3, 1
-  4, 2
-*/

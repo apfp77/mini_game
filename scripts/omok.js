@@ -18,44 +18,99 @@ let gameState = false;
 
 function heightGameState(idxX, idxY, player) {
   let cnt = 1;
-  let idxXTop = idxY;
-  let idxXBottom = idxY;
-  while (idxXTop >= 0) {
-    if (arr[idxXTop - 1][idxX] !== player) break;
+  let idxYTop = idxY - 1;
+  let idxYBottom = idxY + 1;
+  while (idxYTop >= 0) {
+    if (arr[idxYTop][idxX] !== player) break;
     cnt++;
-    idxXTop--;
+    idxYTop--;
   }
 
-  while (idxXBottom < lineCount) {
-    if (arr[idxXBottom + 1][idxX] !== player) break;
+  while (idxYBottom < lineCount) {
+    if (arr[idxYBottom][idxX] !== player) break;
     cnt++;
-    idxXBottom++;
+    idxYBottom++;
   }
   if (cnt === 5) {
     this.gameState = true;
   }
-  console.log(cnt);
 }
 
 function widthGameState(idxX, idxY, player) {
   let cnt = 1;
-  let idxXLeft = idxX;
-  let idxXRight = idxX;
+  let idxXLeft = idxX - 1;
+  let idxXRight = idxX + 1;
   while (idxXLeft >= 0) {
-    if (arr[idxY][idxXLeft - 1] !== player) break;
+    if (arr[idxY][idxXLeft] !== player) break;
     cnt++;
     idxXLeft--;
   }
 
-  // 가로 오른쪽
   while (idxXRight < lineCount) {
-    if (arr[idxY][idxXRight + 1] !== player) break;
+    if (arr[idxY][idxXRight] !== player) break;
     cnt++;
     idxXRight++;
   }
   if (cnt === 5) {
     this.gameState = true;
   }
+}
+
+function diagonalSlash(idxX, idxY, player) {
+  let cnt = 1;
+  let idxXLeft = idxX - 1;
+  let idxYLeft = idxY + 1;
+  let idxXRight = idxX + 1;
+  let idxYRight = idxY - 1;
+
+  while (idxXLeft >= 0 && idxYLeft < lineCount) {
+    if (arr[idxYLeft][idxXLeft] !== player) break;
+    idxXLeft--;
+    idxYLeft++;
+    cnt++;
+  }
+  while (idxXRight < lineCount && idxYRight >= 0) {
+    if (arr[idxYRight][idxXRight] !== player) break;
+    idxXRight++;
+    idxYRight--;
+    cnt++;
+  }
+  if (cnt == 5) {
+    this.gameState = true;
+  }
+}
+
+function diagonalEscape(idxX, idxY, player) {
+  let cnt = 1;
+  let idxXLeft = idxX - 1;
+  let idxYLeft = idxY - 1;
+  let idxXRight = idxX + 1;
+  let idxYRight = idxY + 1;
+
+  while (idxXLeft >= 0 && idxYLeft >= 0) {
+    if (arr[idxYLeft][idxXLeft] !== player) {
+      break;
+    }
+    idxXLeft--;
+    idxYLeft--;
+    cnt++;
+  }
+  while (idxXRight < lineCount && idxYRight < lineCount) {
+    if (arr[idxYRight][idxXRight] !== player) break;
+    idxXRight++;
+    idxYRight++;
+    cnt++;
+  }
+  if (cnt == 5) {
+    this.gameState = true;
+  }
+}
+
+function diagonalGameState(idxX, idxY, player) {
+  // /
+  diagonalSlash(idxX, idxY, player);
+  // \
+  diagonalEscape(idxX, idxY, player);
 }
 
 function drawLine(x1, y1, x2, y2) {
@@ -72,21 +127,24 @@ function drawLine(x1, y1, x2, y2) {
 }
 
 function drawStone(x, y, color) {
-  const stone = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "circle"
-  );
-  stone.setAttribute("cx", x);
-  stone.setAttribute("cy", y);
-  stone.setAttribute("r", 20); // 바둑알 반지름
-  stone.setAttribute("class", "stone");
+  return new Promise((resolv) => {
+    const stone = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
+    stone.setAttribute("cx", x);
+    stone.setAttribute("cy", y);
+    stone.setAttribute("r", 20); // 바둑알 반지름
+    stone.setAttribute("class", "stone");
 
-  stone.setAttribute("fill", color);
-  stonesGroup.appendChild(stone);
+    stone.setAttribute("fill", color);
+    stonesGroup.appendChild(stone);
+    resolv();
+  });
 }
 
 // 클릭 이벤트 리스너를 추가하여 클릭 시 바둑알을 그립니다.
-svg.addEventListener("click", (event) => {
+svg.addEventListener("click", async (event) => {
   // 첫번째 줄의 라인이 몇인지가 필요함
   if (this.gameState) return;
   if (
@@ -118,14 +176,15 @@ svg.addEventListener("click", (event) => {
   }
   const color = check === true ? "white" : "black";
   const player = check === true ? 2 : 1;
-  const idxY = y / boardEndToLineDistance;
-  const idxX = x / boardEndToLineDistance;
+  const idxY = y / boardEndToLineDistance - 1;
+  const idxX = x / boardEndToLineDistance - 1;
   if (arr[idxY][idxX] === 0) {
     arr[idxY][idxX] = player;
     check = !check;
-    drawStone(x, y, color);
+    await drawStone(x, y, color);
     widthGameState(idxX, idxY, player);
     heightGameState(idxX, idxY, player);
+    diagonalGameState(idxX, idxY, player);
   }
 });
 
@@ -145,3 +204,9 @@ for (
 ) {
   drawLine(i, boardEndToLineDistance, i, maxSize);
 }
+
+/*
+  2, 0
+  3, 1
+  4, 2
+*/

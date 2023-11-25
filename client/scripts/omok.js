@@ -1,3 +1,8 @@
+/**
+ * TODO List
+ * 3-3 처리
+ * 로직 분리
+ */
 const lineCount = 17;
 const boardEndToLineDistance = 50;
 const maxSize = 850;
@@ -9,6 +14,23 @@ const arr = Array.from(Array(lineCount + 1), () =>
 );
 let check = false;
 let gameState = false;
+
+// 세로 선
+for (
+  let i = boardEndToLineDistance;
+  i <= maxSize;
+  i += boardEndToLineDistance
+) {
+  drawLine(boardEndToLineDistance, i, maxSize, i);
+}
+// 가로 선
+for (
+  let i = boardEndToLineDistance;
+  i <= maxSize;
+  i += boardEndToLineDistance
+) {
+  drawLine(i, boardEndToLineDistance, i, maxSize);
+}
 
 function heightGameState(idxX, idxY, player) {
   let cnt = 1;
@@ -101,10 +123,26 @@ function diagonalEscape(idxX, idxY, player) {
 }
 
 function diagonalGameState(idxX, idxY, player) {
-  // /
   diagonalSlash(idxX, idxY, player);
-  // \
   diagonalEscape(idxX, idxY, player);
+}
+
+function drawStone(x, y, color) {
+  return new Promise((resolv) => {
+    const stone = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
+    stone.setAttribute("cx", x);
+    stone.setAttribute("cy", y);
+    stone.setAttribute("r", 20); // 바둑알 반지름
+    stone.setAttribute("class", "stone");
+
+    stone.setAttribute("fill", color);
+
+    stonesGroup.appendChild(stone);
+    resolv();
+  });
 }
 
 function drawLine(x1, y1, x2, y2) {
@@ -120,25 +158,22 @@ function drawLine(x1, y1, x2, y2) {
   svg.appendChild(line);
 }
 
-function drawStone(x, y, color) {
-  return new Promise((resolv) => {
-    const stone = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle"
-    );
-    stone.setAttribute("cx", x);
-    stone.setAttribute("cy", y);
-    stone.setAttribute("r", 20); // 바둑알 반지름
-    stone.setAttribute("class", "stone");
+function overWriteLine(x1, y1, x2, y2, color) {
+  const line = document.createElementNS(svgNamespace, "line");
 
-    stone.setAttribute("fill", color);
-    stonesGroup.appendChild(stone);
-    resolv();
-  });
+  line.setAttribute("x1", x1);
+  line.setAttribute("y1", y1);
+  line.setAttribute("x2", x2);
+  line.setAttribute("y2", y2);
+  line.setAttribute("stroke", color); // 선 색상
+  line.setAttribute("stroke-width", "3"); // 선 두께
+
+  svg.appendChild(line);
 }
 
 svg.addEventListener("click", async (event) => {
   if (this.gameState) return;
+
   if (
     svg.getBoundingClientRect().right - event.clientX <
       boardEndToLineDistance ||
@@ -174,25 +209,10 @@ svg.addEventListener("click", async (event) => {
     arr[idxY][idxX] = player;
     check = !check;
     await drawStone(x, y, color);
+    overWriteLine(x - 20, y, x + 20, y, color);
+    overWriteLine(x, y - 20, x, y + 20, color);
     widthGameState(idxX, idxY, player);
     heightGameState(idxX, idxY, player);
     diagonalGameState(idxX, idxY, player);
   }
 });
-
-// 세로 선
-for (
-  let i = boardEndToLineDistance;
-  i <= maxSize;
-  i += boardEndToLineDistance
-) {
-  drawLine(boardEndToLineDistance, i, maxSize, i);
-}
-// 가로 선
-for (
-  let i = boardEndToLineDistance;
-  i <= maxSize;
-  i += boardEndToLineDistance
-) {
-  drawLine(i, boardEndToLineDistance, i, maxSize);
-}
